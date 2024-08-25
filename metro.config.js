@@ -6,4 +6,6 @@ const { withNativeWind } = require('nativewind/metro');
 // eslint-disable-next-line no-undef
 const config = getDefaultConfig(__dirname);
 
+config.transformer.babelTransformerPath = require.resolve('./metro.transformer.js');
+
 module.exports = withNativeWind(config, { input: './global.css', inlineRem: 16 });
