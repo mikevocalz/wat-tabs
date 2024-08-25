@@ -24,6 +24,7 @@ type BabylonSceneProps = {
   debug?: boolean;
   dom?: DOMProps;
 };
+
 const ARWebView: React.FC<BabylonSceneProps> = ({ modelUrl, debug = false, dom }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const engineRef = useRef<Nullable<Engine>>(null);
@@ -145,14 +146,14 @@ const ARWebView: React.FC<BabylonSceneProps> = ({ modelUrl, debug = false, dom }
 
   return (
     //fiqure how to inject the tailwind cdn or some script to load styles in the webview
-    <div>
-      <canvas ref={canvasRef} style={{ width: '100%', height: '100vh' }} {...dom} />
-      <button
-        onClick={handleToggleSound}
+    <Section className="h-full w-full" {...dom}>
+      <canvas ref={canvasRef} className="h-screen w-full" />
+      <Pressable
+        onPress={handleToggleSound}
         className="absolute left-0 top-0 m-2 rounded-lg bg-orange-600 px-8 py-2">
-        <p className="text-xl text-white">{isPlaying ? 'Stop' : 'Play'}</p>
-      </button>
-    </div>
+        <Text className="text-xl text-white">{isPlaying ? 'Stop' : 'Play'}</Text>
+      </Pressable>
+    </Section>
   );
 };
 
