@@ -1,472 +1,165 @@
-import { useActionSheet } from '@expo/react-native-action-sheet';
-import { useHeaderHeight } from '@react-navigation/elements';
-import { Icon } from '@roninoss/icons';
-import { FlashList } from '@shopify/flash-list';
-import { Stack } from 'expo-router';
-import * as StoreReview from 'expo-store-review';
-import { cssInterop } from 'nativewind';
-import * as React from 'react';
-import {
-  Button as RNButton,
-  ButtonProps,
-  Linking,
-  Platform,
-  Share,
-  useWindowDimensions,
-  View,
-  Alert,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { MotiScrollView } from 'moti';
+import React, { useRef, useState } from 'react';
+import { Dimensions, Pressable, ScrollView, View, ImageBackground } from 'react-native';
 
-import { Container } from '~/components/Container';
-import { ActivityIndicator } from '~/components/nativewindui/ActivityIndicator';
-import { Avatar, AvatarFallback, AvatarImage } from '~/components/nativewindui/Avatar';
-import { DatePicker } from '~/components/nativewindui/DatePicker';
-import { Picker, PickerItem } from '~/components/nativewindui/Picker';
-import { ProgressIndicator } from '~/components/nativewindui/ProgressIndicator';
-import { Sheet, useSheetRef } from '~/components/nativewindui/Sheet';
-import { Slider } from '~/components/nativewindui/Slider';
-import { Text } from '~/components/nativewindui/Text';
-import { Toggle } from '~/components/nativewindui/Toggle';
-import { useColorScheme } from '~/lib/useColorScheme';
-import { useHeaderSearchBar } from '~/lib/useHeaderSearchBar';
+import HomeCard from '../../components/HomeCard';
+import { TabBarIcon } from '../../components/TabBarIcon';
 
-export default function Home() {
-  const searchValue = useHeaderSearchBar({ hideWhenScrolling: COMPONENTS.length === 0 });
-
-  const data = searchValue
-    ? COMPONENTS.filter((c) => c.name.toLowerCase().includes(searchValue.toLowerCase()))
-    : COMPONENTS;
-
-  return (
-    <>
-      <Stack.Screen options={{ title: 'Tab One' }} />
-      <Container>
-        <FlashList
-          contentInsetAdjustmentBehavior="automatic"
-          keyboardShouldPersistTaps="handled"
-          data={data}
-          estimatedItemSize={200}
-          contentContainerClassName="py-4 android:pb-12"
-          extraData={searchValue}
-          removeClippedSubviews={false} // used for selecting text on android
-          keyExtractor={keyExtractor}
-          ItemSeparatorComponent={renderItemSeparator}
-          renderItem={renderItem}
-          ListEmptyComponent={COMPONENTS.length === 0 ? ListEmptyComponent : undefined}
-        />
-      </Container>
-    </>
-  );
-}
-
-cssInterop(FlashList, {
-  className: 'style',
-  contentContainerClassName: 'contentContainerStyle',
-});
-
-function DefaultButton({ color, ...props }: ButtonProps) {
-  const { colors } = useColorScheme();
-  return <RNButton color={color ?? colors.primary} {...props} />;
-}
-
-function ListEmptyComponent() {
-  const insets = useSafeAreaInsets();
-  const dimensions = useWindowDimensions();
-  const headerHeight = useHeaderHeight();
-  const { colors } = useColorScheme();
-  const height = dimensions.height - headerHeight - insets.bottom - insets.top;
-
-  return (
-    <View style={{ height }} className="flex-1 items-center justify-center gap-1 px-12">
-      <Icon name="file-plus-outline" size={42} color={colors.grey} />
-      <Text variant="title3" className="pb-1 text-center font-semibold">
-        No Components Installed
-      </Text>
-      <Text color="tertiary" variant="subhead" className="pb-4 text-center">
-        You can install any of the free components from the{' '}
-        <Text
-          onPress={() => Linking.openURL('https://nativewindui.com')}
-          variant="subhead"
-          className="text-primary">
-          NativeWindUI
-        </Text>
-        {' website.'}
-      </Text>
-    </View>
-  );
-}
-
-type ComponentItem = { name: string; component: React.FC };
-
-function keyExtractor(item: ComponentItem) {
-  return item.name;
-}
-
-function renderItemSeparator() {
-  return <View className="p-2" />;
-}
-
-function renderItem({ item }: { item: ComponentItem }) {
-  return (
-    <Card title={item.name}>
-      <item.component />
-    </Card>
-  );
-}
-
-function Card({ children, title }: { children: React.ReactNode; title: string }) {
-  return (
-    <View className="px-4">
-      <View className="gap-4 rounded-xl border border-border bg-card p-4 pb-6 shadow-sm shadow-black/10 dark:shadow-none">
-        <Text className="text-center text-sm font-medium tracking-wider opacity-60">{title}</Text>
-        {children}
-      </View>
-    </View>
-  );
-}
-
-let hasRequestedReview = false;
-
-const COMPONENTS: ComponentItem[] = [
+const data = [
   {
-    name: 'Picker',
-    component: function PickerExample() {
-      const { colors } = useColorScheme();
-      const [picker, setPicker] = React.useState('blue');
-      return (
-        <Picker selectedValue={picker} onValueChange={(itemValue) => setPicker(itemValue)}>
-          <PickerItem
-            label="Red"
-            value="red"
-            color={colors.foreground}
-            style={{
-              backgroundColor: colors.root,
-            }}
-          />
-          <PickerItem
-            label="Blue"
-            value="blue"
-            color={colors.foreground}
-            style={{
-              backgroundColor: colors.root,
-            }}
-          />
-          <PickerItem
-            label="Green"
-            value="green"
-            color={colors.foreground}
-            style={{
-              backgroundColor: colors.root,
-            }}
-          />
-        </Picker>
-      );
-    },
-  },
-
-  {
-    name: 'Date Picker',
-    component: function DatePickerExample() {
-      const [date, setDate] = React.useState(new Date());
-      return (
-        <View className="items-center">
-          <DatePicker
-            value={date}
-            mode="datetime"
-            onChange={(ev) => {
-              setDate(new Date(ev.nativeEvent.timestamp));
-            }}
-          />
-        </View>
-      );
-    },
-  },
-
-  {
-    name: 'Slider',
-    component: function SliderExample() {
-      const [sliderValue, setSliderValue] = React.useState(0.5);
-      return <Slider value={sliderValue} onValueChange={setSliderValue} />;
-    },
-  },
-
-  {
-    name: 'Toggle',
-    component: function ToggleExample() {
-      const [switchValue, setSwitchValue] = React.useState(true);
-      return (
-        <View className="items-center">
-          <Toggle value={switchValue} onValueChange={setSwitchValue} />
-        </View>
-      );
-    },
-  },
-
-  {
-    name: 'Progress Indicator',
-    component: function ProgressIndicatorExample() {
-      const [progress, setProgress] = React.useState(13);
-      let id: ReturnType<typeof setInterval> | null = null;
-      React.useEffect(() => {
-        if (!id) {
-          id = setInterval(() => {
-            setProgress((prev) => (prev >= 99 ? 0 : prev + 5));
-          }, 1000);
-        }
-        return () => {
-          if (id) clearInterval(id);
-        };
-      }, []);
-      return (
-        <View className="p-4">
-          <ProgressIndicator value={progress} />
-        </View>
-      );
-    },
-  },
-
-  {
-    name: 'Activity Indicator',
-    component: function ActivityIndicatorExample() {
-      return (
-        <View className="items-center p-4">
-          <ActivityIndicator />
-        </View>
-      );
-    },
-  },
-
-  {
-    name: 'Action Sheet',
-    component: function ActionSheetExample() {
-      const { colorScheme, colors } = useColorScheme();
-      const { showActionSheetWithOptions } = useActionSheet();
-      return (
-        <View className="items-center">
-          <DefaultButton
-            color="grey"
-            onPress={async () => {
-              const options = ['Delete', 'Save', 'Cancel'];
-              const destructiveButtonIndex = 0;
-              const cancelButtonIndex = 2;
-
-              showActionSheetWithOptions(
-                {
-                  options,
-                  cancelButtonIndex,
-                  destructiveButtonIndex,
-                  containerStyle: {
-                    backgroundColor: colorScheme === 'dark' ? 'black' : 'white',
-                  },
-                  textStyle: {
-                    color: colors.foreground,
-                  },
-                },
-                (selectedIndex) => {
-                  switch (selectedIndex) {
-                    case 1:
-                      // Save
-                      break;
-
-                    case destructiveButtonIndex:
-                      // Delete
-                      break;
-
-                    case cancelButtonIndex:
-                    // Canceled
-                  }
-                }
-              );
-            }}
-            title="Open action sheet"
-          />
-        </View>
-      );
-    },
-  },
-
-  {
-    name: 'Text',
-    component: function TextExample() {
-      return (
-        <View className="gap-2">
-          <Text variant="largeTitle" className="text-center">
-            Large Title
-          </Text>
-          <Text variant="title1" className="text-center">
-            Title 1
-          </Text>
-          <Text variant="title2" className="text-center">
-            Title 2
-          </Text>
-          <Text variant="title3" className="text-center">
-            Title 3
-          </Text>
-          <Text variant="heading" className="text-center">
-            Heading
-          </Text>
-          <Text variant="body" className="text-center">
-            Body
-          </Text>
-          <Text variant="callout" className="text-center">
-            Callout
-          </Text>
-          <Text variant="subhead" className="text-center">
-            Subhead
-          </Text>
-          <Text variant="footnote" className="text-center">
-            Footnote
-          </Text>
-          <Text variant="caption1" className="text-center">
-            Caption 1
-          </Text>
-          <Text variant="caption2" className="text-center">
-            Caption 2
-          </Text>
-        </View>
-      );
-    },
+    id: 1,
+    title: 'Button 1',
+    img: 'https://static01.nyt.com/images/2012/06/07/movies/prometheus-designs-slide-SMBL/prometheus-designs-slide-SMBL-superJumbo.jpg',
+    css: 'w-full h-[38%] aspect-video',
+    altText: '',
   },
   {
-    name: 'Selectable Text',
-    component: function SelectableTextExample() {
-      return (
-        <Text uiTextView selectable>
-          Long press or double press this text
-        </Text>
-      );
-    },
+    id: 2,
+    title: 'Discover New Worlds',
+    img: 'https://i.pinimg.com/originals/63/1b/df/631bdf111e9ee0231a3a8cdcaac3c9b3.jpg',
+    css: '',
+    altText: 'Weylands New Colonized Planets',
   },
-
   {
-    name: 'Ratings Indicator',
-    component: function RatingsIndicatorExample() {
-      React.useEffect(() => {
-        async function showRequestReview() {
-          if (hasRequestedReview) return;
-          try {
-            if (await StoreReview.hasAction()) {
-              await StoreReview.requestReview();
-            }
-          } catch (error) {
-            console.log(
-              'FOR ANDROID: Make sure you meet all conditions to be able to test and use it: https://developer.android.com/guide/playcore/in-app-review/test#troubleshooting',
-              error
-            );
-          } finally {
-            hasRequestedReview = true;
-          }
-        }
-        const timeout = setTimeout(() => {
-          showRequestReview();
-        }, 1000);
-
-        return () => clearTimeout(timeout);
-      }, []);
-
-      return (
-        <View className="gap-3">
-          <Text className="pb-2 text-center font-semibold">Please follow the guidelines.</Text>
-          <View className="flex-row">
-            <Text className="w-6 text-center text-muted-foreground">·</Text>
-            <View className="flex-1">
-              <Text variant="caption1" className="text-muted-foreground">
-                Don't call StoreReview.requestReview() from a button
-              </Text>
-            </View>
-          </View>
-          <View className="flex-row">
-            <Text className="w-6 text-center text-muted-foreground">·</Text>
-            <View className="flex-1">
-              <Text variant="caption1" className="text-muted-foreground">
-                Don't request a review when the user is doing something time sensitive.
-              </Text>
-            </View>
-          </View>
-          <View className="flex-row">
-            <Text className="w-6 text-center text-muted-foreground">·</Text>
-            <View className="flex-1">
-              <Text variant="caption1" className="text-muted-foreground">
-                Don't ask the user any questions before or while presenting the rating button or
-                card.
-              </Text>
-            </View>
-          </View>
-        </View>
-      );
-    },
+    id: 3,
+    title: 'Button 3',
+    img: 'https://www.avpcentral.com/images/romulus-androids/alien-romulus-android.jpg',
+    css: '',
+    altText: '',
   },
-
   {
-    name: 'Activity View',
-    component: function ActivityViewExample() {
-      return (
-        <View className="items-center">
-          <DefaultButton
-            onPress={async () => {
-              try {
-                const result = await Share.share({
-                  message: 'NativeWindUI | Familiar interface, native feel.',
-                });
-                if (result.action === Share.sharedAction) {
-                  if (result.activityType) {
-                    // shared with activity type of result.activityType
-                  } else {
-                    // shared
-                  }
-                } else if (result.action === Share.dismissedAction) {
-                  // dismissed
-                }
-              } catch (error: any) {
-                Alert.alert(error.message);
-              }
-            }}
-            title="Share a message"
-          />
-        </View>
-      );
-    },
-  },
-
-  {
-    name: 'Bottom Sheet',
-    component: function BottomSheetExample() {
-      const { colorScheme } = useColorScheme();
-      const bottomSheetModalRef = useSheetRef();
-
-      return (
-        <View className="items-center">
-          <DefaultButton
-            color={colorScheme === 'dark' && Platform.OS === 'ios' ? 'white' : 'black'}
-            title="Open Bottom Sheet"
-            onPress={() => bottomSheetModalRef.current?.present()}
-          />
-          <Sheet ref={bottomSheetModalRef} snapPoints={[200]}>
-            <View className="flex-1 items-center justify-center pb-8">
-              <Text>@gorhom/bottom-sheet 🎉</Text>
-            </View>
-          </Sheet>
-        </View>
-      );
-    },
-  },
-
-  {
-    name: 'Avatar',
-    component: function AvatarExample() {
-      const TWITTER_AVATAR_URI =
-        'https://pbs.twimg.com/profile_images/1782428433898708992/1voyv4_A_400x400.jpg';
-      return (
-        <View className="items-center">
-          <Avatar alt="NativeWindUI Avatar">
-            <AvatarImage source={{ uri: TWITTER_AVATAR_URI }} />
-            <AvatarFallback>
-              <Text>NUI</Text>
-            </AvatarFallback>
-          </Avatar>
-        </View>
-      );
-    },
+    id: 4,
+    title: 'Button 4',
+    img: 'https://i.pinimg.com/1200x/08/ae/ed/08aeed07c73b2f13c3a14f36ee865b0c.jpg',
+    css: '',
+    altText: '',
   },
 ];
+
+export default function Home() {
+  const router = useRouter();
+  const scrollViewRef = useRef<ScrollView>(null);
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const [contentWidth, setContentWidth] = useState(0);
+  const screenWidth = Dimensions.get('window').width;
+
+  const handleScroll = (direction: 'left' | 'right', fastScroll = false) => {
+    if (scrollViewRef.current) {
+      const maxScroll = contentWidth - screenWidth;
+      let scrollX = scrollPosition;
+
+      const scrollStep = fastScroll ? screenWidth / 3 : screenWidth / 6; // Adjusted for slower scroll speed
+
+      if (direction === 'right') {
+        scrollX = Math.min(scrollX + scrollStep, maxScroll);
+      } else {
+        scrollX = Math.max(scrollX - scrollStep, 0);
+      }
+
+      scrollViewRef.current?.scrollTo({ x: scrollX, animated: true });
+      setScrollPosition(scrollX);
+    }
+  };
+
+  const scrollLeft = () => handleScroll('left');
+  const scrollRight = () => handleScroll('right');
+
+  const scrollLeftFast = () => handleScroll('left', true);
+  const scrollRightFast = () => handleScroll('right', true);
+
+  return (
+    <ImageBackground
+      resizeMode="repeat"
+      source={{
+        uri: 'https://web.archive.org/web/20120912011558im_/https://www.weylandindustries.com/img/background-grid.png',
+      }}
+      className="w-full flex-1 items-center bg-[#26566d]">
+      <View className="grow-1 h-[92%] w-full">
+        <MotiScrollView
+          showsHorizontalScrollIndicator={false}
+          from={{ opacity: 0, translateY: -10 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: 'timing', duration: 2000 }}
+          ref={scrollViewRef}
+          onContentSizeChange={(contentWidth) => setContentWidth(contentWidth)}
+          onScroll={(e) => setScrollPosition(e.nativeEvent.contentOffset.x)}
+          contentContainerClassName="pr-[400px] mt-[10px] md:pr-[900px] flex-row"
+          scrollEventThrottle={30}
+          horizontal
+          className="flex">
+          <View className="w-screen flex-row gap-x-1">
+            <View className="ml-10 h-full w-[120%] flex-wrap">
+              <View className="h-2/3 w-full">
+                <HomeCard
+                  text={data[0].title}
+                  imgUri={data[0].img}
+                  viewStyle="w-[102%] mb-1"
+                  imgClassName="w-[180%] h-[100%] aspect-[12/7]"
+                  onPress={() => router.push('/two')}
+                />
+              </View>
+              <View className="mt-1 h-1/3 w-full flex-1 flex-row gap-x-2">
+                <HomeCard
+                  text={data[1].title}
+                  imgUri={data[1].img}
+                  viewStyle="w-[40%]"
+                  imgClassName="w-full h-full"
+                />
+                <HomeCard
+                  text={data[2].title}
+                  imgUri={data[2].img}
+                  altText={data[1]?.altText}
+                  viewStyle="ml-2 md:ml-[24px] w-[60%]"
+                  imgClassName="w-full h-full"
+                />
+              </View>
+            </View>
+          </View>
+
+          <View className="ml-[11.5%] h-[98.8%] h-full w-screen flex-row md:ml-[9%]">
+            <HomeCard
+              text={data[3].title}
+              altText=""
+              imgUri={data[3].img}
+              viewStyle="h-full flex w-full mx-2"
+              imgClassName="w-full h-full"
+            />
+          </View>
+
+          <View className="ml-[11px] h-[98.8%] h-full w-screen flex-col justify-between">
+            <HomeCard
+              text={data[3].title}
+              altText=""
+              imgUri="https://cdnb.artstation.com/p/assets/images/images/006/057/073/large/steve-burg-int-hypersleep-rm-01-24-2016-007-resize.jpg?1495717209"
+              viewStyle="h-[49.3%] flex w-[150%] mx-2"
+              imgClassName="w-full h-[1/2] flex-1"
+            />
+            <HomeCard
+              text={data[3].title}
+              altText=""
+              imgUri="https://i.pinimg.com/736x/ab/25/e7/ab25e70d60ba083d1be9dc646a4e2e3b.jpg"
+              viewStyle="h-[49.3%] flex w-[150%] mx-[7px]"
+              imgClassName="w-full h-[1/2] flex-1"
+            />
+          </View>
+        </MotiScrollView>
+      </View>
+
+      <View className="absolute bottom-2 right-4 flex h-[40px] w-[80px] flex-row items-center justify-between gap-1 md:h-[60px] md:w-[100px]">
+        <Pressable
+          onPress={scrollLeft}
+          onLongPress={scrollLeftFast}
+          className="h-full w-[40px] items-center justify-center rounded-lg bg-gray-900 pb-0 md:w-[50px]">
+          <TabBarIcon name="chevron-left" color="white" />
+        </Pressable>
+        <Pressable
+          onPress={scrollRight}
+          onLongPress={scrollRightFast}
+          className="h-full w-[40px] items-center justify-center rounded-lg bg-gray-900 pb-0 md:w-[50px]">
+          <TabBarIcon name="chevron-right" color="white" />
+        </Pressable>
+      </View>
+    </ImageBackground>
+  );
+}
