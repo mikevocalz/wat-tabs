@@ -27,10 +27,10 @@ const HomeCard: FC<ButtonProps> = ({
   return (
     <Pressable
       onPress={onPress}
-      className={`${viewStyle} mb-0  min-h-[150px]  overflow-hidden rounded-xl bg-slate-900`}>
+      className={`${viewStyle} mb-0 min-h-[150px]  overflow-hidden rounded-xl	 bg-slate-900 `}>
       <ImageBackground
         resizeMode="cover"
-        className={`z-50  flex  min-h-[150px] ${imgClassName}`}
+        className={`z-50  flex min-h-[150px] shadow-xl drop-shadow-xl ${imgClassName}`}
         source={{
           uri: imgUri,
         }}>

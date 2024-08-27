@@ -3,8 +3,10 @@ import { Stack } from 'expo-router';
 import { MotiView } from 'moti';
 import React, { useState, useEffect } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
+import WebView from 'react-native-webview';
 
 import { ProgressIndicator } from '../../components/nativewindui/ProgressIndicator';
+import DATA, { AvatarData } from '../../data';
 
 import ARWebView from '~/components/ARWebView';
 
@@ -67,7 +69,7 @@ document.head.appendChild(injectCSS);
         <ARWebView
           //onLoadProgress={handleLoadProgress}
           //onLoadEnd={handleLoadEnd}
-          modelUrl="/assets/model/Duck.glb"
+          modelUrls={DATA}
           debug={false}
           dom={{
             injectedJavaScript: injectTailwindCSS,
@@ -85,6 +87,23 @@ document.head.appendChild(injectCSS);
             },
           }}
         />
+
+        {/* <WebView
+          ignoreSslError
+          style={{
+            flex: 1,
+            width: '100%',
+            height: '100%',
+          }}
+          containerStyle={{
+            flex: 1,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'red',
+          }}
+          javaScriptEnabled
+          source={{ uri: 'https://43m8ks.csb.app/' }}
+        /> */}
       </View>
     </>
   );

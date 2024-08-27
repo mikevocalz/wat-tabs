@@ -74,12 +74,13 @@ export default function Home() {
       source={{
         uri: 'https://web.archive.org/web/20120912011558im_/https://www.weylandindustries.com/img/background-grid.png',
       }}
-      className="w-full flex-1 items-center bg-[#26566d]">
-      <View className="grow-1 h-[92%] w-full">
+      className="w-full flex-1  bg-[#26566d]">
+      <View className="grow-1 h-[92%] w-full max-w-7xl">
         <MotiScrollView
+          bounces={false}
           showsHorizontalScrollIndicator={false}
-          from={{ opacity: 0, translateY: -10 }}
-          animate={{ opacity: 1, translateY: 0 }}
+          from={{ opacity: 0, translateX: 40 }}
+          animate={{ opacity: 1, translateX: 0 }}
           transition={{ type: 'timing', duration: 2000 }}
           ref={scrollViewRef}
           onContentSizeChange={(contentWidth) => setContentWidth(contentWidth)}
@@ -117,7 +118,7 @@ export default function Home() {
             </View>
           </View>
 
-          <View className="ml-[11.5%] h-[98.8%] h-full w-screen flex-row md:ml-[9%]">
+          <View className="ml-[10.2%] h-[98.8%] h-full w-[120vw] flex-row md:ml-[9%]">
             <HomeCard
               text={data[3].title}
               altText=""
